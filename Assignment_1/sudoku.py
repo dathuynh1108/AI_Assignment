@@ -17,6 +17,8 @@ class Board:
         else:
             self.board = board
             self.size = len(board)
+            for i in range(0, len(self.board)):
+                board[i] = list(map(lambda c: 0 if c == "." else int(c), board[i]))
         self.square_size = int(sqrt(self.size))
         self.history = []
 
@@ -35,12 +37,13 @@ class Board:
             if ((i + 1) % square_size == 0 and i < size - 1): result += "---------------------\n"
         return result
 
-    def print_result(self):
+    def result(self):
+        result = ""
         for history in self.history:
-            print(Board.board_to_string(history[3], self.size))
-            print(f"Row: {history[0]}, Column: {history[1]}, Value: {history[2]}")
-        print(self.__str__())
-
+            result += Board.board_to_string(history[3], self.size) + "\n"+ f"Row: {history[0]}, Column: {history[1]}, Value: {history[2]}\n"
+        result += self.__str__()
+        return result
+    
     def check_goal(self):
         expect = sum(range(1, self.size + 1))
         # Check row and column:
@@ -120,17 +123,17 @@ def online_init():
 
 def custom_init():
     with open("sudoku_init.txt", encoding="utf-8") as init_file:
-        size = int(init_file.readline())
         board = []
-        while True:
-            current_line = init_file.readline()
-            if not current_line: break
-            board.append(current_line.split(" "))
+        for line in init_file:
+            line = line.strip()
+            board.append(line.split(" "))
     return board
 
 
 if __name__ == "__main__":
-    board = Board(online_init(), "online")
+    board = Board(custom_init(), "custom")
+    print(board)
     board.bfs()
-    board.print_result()
+    with open("sudoku_result.txt", "w") as output_file:
+        output_file.write(board.result())
 

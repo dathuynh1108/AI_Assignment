@@ -158,11 +158,12 @@ class Sudoku:
         
     def heuristic(self):
         return self.dfs_with_heuristic()
+
 def online_init():
     level = -1
     while (level not in range(0, 6)):
         print("Input level of difficult: ")
-        print("BASIC - 0", "EASY - 1", "INTERMEDIATE - 2", "ADVANCE - 3", "EXTREAME - 4", "EVIL - 5")
+        print(" BASIC - 0\n", "EASY - 1\n", "INTERMEDIATE - 2\n", "ADVANCE - 3\n", "EXTREAME - 4\n", "EVIL - 5")
         level = int(input())
     import requests
     # Take task string from web page
@@ -180,7 +181,7 @@ def custom_init():
     return board
 
 if __name__ == "__main__":
-    board = Sudoku(custom_init())
+    board = Sudoku(online_init())
     print(board)
     import time
     

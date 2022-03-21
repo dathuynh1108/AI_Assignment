@@ -3,8 +3,8 @@ from math import sqrt
 import copy
 
 class Sudoku:
-    def __init__(self, board, type = "online"):
-        if type == "online":
+    def __init__(self, board):
+        if isinstance(board, str):
             self.board = []
             for c in board:
                 if c == "_": pass
@@ -140,11 +140,14 @@ def custom_init():
             board.append(line.split(" "))
     return board
 
-
 if __name__ == "__main__":
-    board = Sudoku(custom_init(), "custom")
+    board = Sudoku(custom_init())
     print(board)
+    import time
+    start = time.time()
     result, history = board.bfs()
+    end = time.time()
+    print("Search time: ", end - start)
     with open("sudoku_result.txt", "w") as output_file:
         output_file.write(Sudoku.result(result, history, board.size))
 

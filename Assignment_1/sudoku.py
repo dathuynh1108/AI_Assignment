@@ -2,6 +2,8 @@
 from math import sqrt
 import copy
 
+from numpy import append, insert
+
 class Sudoku:
     def __init__(self, board):
         if isinstance(board, str):
@@ -66,45 +68,65 @@ class Sudoku:
                     if square_sum != expect: return False
         return True
 
-    def find_empty_cell(self, state):
-        for row in range(self.size):
-            for col in range(self.size):
-                if state[row][col] == 0:
-                    return row, col
-        return None, None
-
-    def filter_row(self, state, row, column):
-        pass
-
-    def filter_column(self, state, row, column):
-        pass
-
-    def filter_subsquare(self, state, row, column):
-        pass
-    
-    def expand(self, state, history):
+    def filter_value(self, state, row, column):
         values = range(1, self.size + 1)
-        row, column = self.find_empty_cell(state)
-        
-        if row == None or column == None: return None
         used = set()
         for i in range(0, self.size):
             used.add(state[row][i])
             used.add(state[i][column])
-        
+
         square_row_start = int(row / self.square_size) * self.square_size
         square_column_start = int(column / self.square_size) * self.square_size
         for i in range(0, self.square_size):
             for j in range(0, self.square_size):
                 used.add(state[square_row_start + i][square_column_start + j])
-        valid_value = [number for number in values if number not in used]
+        return [number for number in values if number not in used]
+    
+    def find_empty_cell(self, state):
+        for row in range(self.size):
+            for column in range(self.size):
+                if state[row][column] == 0:
+                    return row, column
+        return None, None
+
+    def find_empty_cell_heuristic(self, state):
+        result_row = None
+        result_column = None
+        min_valid_values = self.size
+        
+        for row in range(self.size):
+            for column in range(self.size):
+                if state[row][column] == 0:
+                    valid_values = len(self.filter_value(state, row, column))
+                    if valid_values < min_valid_values:
+                        result_row = row
+                        result_column = column
+                        min_valid_values = valid_values
+        return result_row, result_column
+
+    def expand(self, state, history):
+        row, column = self.find_empty_cell(state)
+        if row == None or column == None: return None
+        valid_value = self.filter_value(state, row, column)
         return_queue = [copy.deepcopy(state) for i in valid_value]
         for i in range(0, len(return_queue)):
             return_queue[i][row][column] = valid_value[i]
             return_queue[i] = (return_queue[i], history + [(row, column, valid_value[i], state)])
         return return_queue
     
+    def expand_dfs_heuristic(self, state, history):
+        row, column = self.find_empty_cell_heuristic(state)
+        if row == None or column == None: return None
+        valid_value = self.filter_value(state, row, column)
+        return_stack = [copy.deepcopy(state) for i in valid_value]
+        for i in range(0, len(return_stack)):
+            return_stack[i][row][column] = valid_value[i]
+            return_stack[i] = (return_stack[i], history + [(row, column, valid_value[i], state)])
+        return return_stack
+    
+    
     def bfs(self): 
+        file = open("temp.txt", "w")
         queue = [(copy.deepcopy(self.board), [])]
         state = None
         history = None
@@ -114,11 +136,28 @@ class Sudoku:
             queue.pop(0)
             if self.check_goal(state): return state, history
             expand_queue = self.expand(state, history)
-            if expand_queue == None: 
-                print("No valid move")
-                return
+            if expand_queue == None: continue # Pass
             queue += expand_queue
-
+        print("No solution!")
+    
+    def dfs_with_heuristic(self):
+        # Heuristic in choose cell
+        # Back tracking (DFS) in search
+        stack = [(copy.deepcopy(self.board), [])]
+        state = None
+        history = None
+        while (len(stack) != 0):
+            stack_top = stack.pop()
+            state = stack_top[0]
+            history = stack_top[1]
+            if self.check_goal(state): return state, history
+            expand_stack = self.expand_dfs_heuristic(state, history)
+            if expand_stack == None: continue
+            stack = expand_stack + stack
+        print("No solution!")
+        
+    def heuristic(self):
+        return self.dfs_with_heuristic()
 def online_init():
     level = -1
     while (level not in range(0, 6)):
@@ -144,10 +183,35 @@ if __name__ == "__main__":
     board = Sudoku(custom_init())
     print(board)
     import time
+    
     start = time.time()
-    result, history = board.bfs()
+    result_bfs, history_bfs = board.bfs()
     end = time.time()
-    print("Search time: ", end - start)
-    with open("sudoku_result.txt", "w") as output_file:
-        output_file.write(Sudoku.result(result, history, board.size))
+    print("BFS time: ", end - start)
+    
+    start = time.time()
+    result_heuristic, history_heuristic = board.heuristic()
+    end = time.time()  
+    print("Heuristic time: ", end - start) 
+    
+    with open("sudoku_bfs_result.txt", "w") as output_file:
+        output_file.write(Sudoku.result(result_bfs, history_bfs, board.size))
+    with open("sudoku_heuristic_result.txt", "w") as output_file:
+        output_file.write(Sudoku.result(result_heuristic, history_heuristic, board.size))
 
+
+""" 
+Normal DFS / BFS:
+    State hiện tại gen ra các state kế (Tối ưu bằng cách chỉ gen state ở ô trống đầu tiên, không cần gen ở các ô khác)
+    DFS / BFS các state đó
+
+DFS áp dụng Heuristic:
+    Từ state hiện tại chọn ra x state tốt nhất (tốt bằng nhau) bằng cách: 
+        Lấy các state gen ra tại ô có ít lựa chọn nhất
+    DFS các state đó
+
+    Hàm đánh giá độ tốt: Số ô đã điền + Càng ít lựa chọn càng tốt
+    ==> Gần giống Hill climbing vì chọn ra n state tốt nhất từ state hiện tại đi duyệt (Các state đó có độ tốt như nhau nên duyệt hết)
+    ==> Đi DFS các state đó cũng là đi duyệt các state tốt hơn
+    (Best first chọn ra state tốt nhất)
+"""

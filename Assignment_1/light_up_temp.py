@@ -154,6 +154,32 @@ class Solution:
         return_board = deepcopy(self.board)
         return_board[row][col] = "x"
         return self.light_up_row_and_col(row, col, return_board)
+        
+        # # light up the column from the cell 'x' (placed bulb) to above
+        # walker = row - 1
+        # while walker >= 0 and self.board[walker][col] not in block:
+        #     return_board[walker][col] = "L"
+        #     walker = walker - 1
+        
+        # # light up the column from the cell 'x' (placed bulb) to bottom
+        # walker = row + 1
+        # while walker <= self.size - 1 and self.board[walker][col] not in block:
+        #     return_board[walker][col] = "L"
+        #     walker = walker + 1
+            
+        # # light up the row from the cell 'x' (placed bulb) to left
+        # walker = col - 1
+        # while walker >= 0 and self.board[row][walker] not in block:
+        #     return_board[row][walker] = "L"
+        #     walker = walker - 1
+        
+        # # light up the row from the cell 'x' (placed bulb) to right
+        # walker = col + 1
+        # while walker <= self.size - 1 and self.board[row][walker] not in block:
+        #     return_board[row][walker] = "L"
+        #     walker = walker + 1
+            
+        # return return_board    # return new board after placed bulb and light up
     
     # xóa từ danh sách black_cell_with_number ô đc đánh 1,2,3 mà đã đủ bóng đèn xung quanh nó
     def delete_satisfied_black_cells(self):
@@ -161,7 +187,8 @@ class Solution:
         while i < len(self.black_cell_with_number):     # check all black cell with number 1,2,3
             row = self.black_cell_with_number[i][0]   # row
             col = self.black_cell_with_number[i][1]   # col
-            if self.count_remaning_bulbs(row , col, int(self.board[row][col])) == 0:    # completely filled all bulbs that satisfy condition number of the black cell
+            remaining_bulbs = self.count_remaning_bulbs(row , col, int(self.board[row][col]))
+            if remaining_bulbs == 0:    # completely filled all bulbs that satisfy condition number of the black cell
                 self.black_cell_with_number.pop(i)
             i = i + 1
 
@@ -170,12 +197,19 @@ class Solution:
         black_cell_with_number_copy = deepcopy(self.black_cell_with_number)
         m = deepcopy(self)
         
+        # global count1
+        # if count1 != 1:
+        #     count1 +=1
+        #     print("a: ", a)
+        #     print("m: ", m.black_cell_with_number)
+        
+        
         # ta sẽ ưu tiên thăm các ô đen đc đánh số 1,2,3 mà ô đc đánh số i có ÍT HƠN i bóng đèn xung quanh
         # a chính là list những ô như vậy
         # Nếu a rỗng, khi này mọi ô đen đc đánh 1,2,3 đều đã đủ các bóng đèn xung quanh nó
         # Khi này chọn ô trắng đầu tiên chưa đc chiếu sáng, ta visit tất cả các ô mà chiếu sáng ô trắng này
         # như vậy trường hợp xấu nhất ta tạo 13 child (là những ô chung hàng và cột) 
-        if black_cell_with_number_copy == []:
+        if black_cell_with_number_copy==[]:
             found = False
             for i in range (0, self.size):
                 for j in range (0, self.size):
@@ -187,7 +221,7 @@ class Solution:
                             return_child_list.append(new_solution)
                             
                         walker = i - 1
-                        while walker >= 0 and self.board[walker][j] not in block:
+                        while walker >=0 and self.board[walker][j] not in block:
                             if self.board[walker][j]=="-":
                                 new_board = m.put_bulb_and_light_up(walker,j)
                                 new_solution = Solution(new_board,self.child, black_cell_with_number_copy)
@@ -197,7 +231,7 @@ class Solution:
                             walker = walker - 1
                             
                         walker = i + 1
-                        while walker <= self.size - 1 and self.board[walker][j] not in block:
+                        while walker <=self.size - 1 and self.board[walker][j] not in block:
                             if self.board[walker][j]=="-":
                                 new_board = m.put_bulb_and_light_up(walker,j)
                                 new_solution = Solution(new_board,self.child, black_cell_with_number_copy)
@@ -285,6 +319,8 @@ class Solution:
                 print(" ",end="")
             print()
 
+    
+
 
 def breadth_first_search(root):
     visited = []
@@ -343,15 +379,44 @@ def best_first_search(root):
                 queue.append(ele)
                 visited.append(ele.board)
         queue.sort(key=heuristic)
-                   
+        
+        
+        # for i in range(len(queue)):
+        #     print("queue[", i, "]: ")
+        #     # for j in range(len(queue[i].board)):
+        #     #     print(queue[i].board[j])
+        #     queue[i].print_board()
+        #     print()
+        
+        # global count2
+        # if count2 != 3:
+        #     count2 +=1
+        #     # for i in a.child:
+        #     #     print("child board: ", i.board)
+        #     #     print("child black_cell_with_number: ", i.black_cell_with_number)
+        #     #     print()
+        #     print("queue: ")
+        #     for i in range(len(queue)):
+        #         print("queue[", i, "]: ")
+        #         # for j in range(len(queue[i].board)):
+        #         #     print(queue[i].board[j])
+        #         queue[i].print_board()
+        #         print()
+        #     # print("a child board: ", a.child.black_cell_with_number)
+            
+            
     queue[0].print_board()
+    # print()
 
     global result
     for i in range(len(queue[0].board)):
         for j in range(len(queue[0].board[i])):
             result += (queue[0].board[i][j] + " ")
         result +='\n'
-        
+    # print(result)
+    
+    
+
 
 def online_init():
     level = -1

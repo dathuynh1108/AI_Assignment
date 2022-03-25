@@ -1,9 +1,41 @@
 
 from math import sqrt
 import copy
+from sre_parse import GLOBAL_FLAGS
 
 from numpy import append, insert
 
+
+
+
+
+count1 = 0
+count2 = 0
+count3 = 0
+import os           
+import psutil
+
+class Mem:
+    def process_memory():
+        process = psutil.Process(os.getpid())
+        mem_info = process.memory_info()
+        return mem_info.rss
+    
+    # decorator function
+    def profile(func):
+        def wrapper(*args, **kwargs):
+    
+            mem_before = Mem.process_memory()
+            result = func(*args, **kwargs)
+            mem_after = Mem.process_memory()
+            print("{}:consumed memory: {:,}".format(
+                func.__name__,
+                mem_before, mem_after, mem_after - mem_before))
+    
+            return result
+        return wrapper
+    
+    
 class Sudoku:
     def __init__(self, board):
         if isinstance(board, str):
@@ -13,7 +45,10 @@ class Sudoku:
                 elif c >= "1" and c <= "9":
                     self.board.append(int(c))
                 else:
-                    self.board += [0 for i in range((ord(c) - ord("a") + 1))]
+                    self.board += [0 for i in range((ord(c) - ord("a") + 1))]  
+            
+            # print("len:  ", len(self.board))
+            
             self.size = int(sqrt(len(self.board)))
             self.board = [self.board[i : i + self.size] for i in range(0, len(self.board), self.size)]
         else:
@@ -89,14 +124,15 @@ class Sudoku:
                     return row, column
         return None, None
 
-    def find_empty_cell_heuristic(self, state):
+    def find_empty_cell_heuristic(self, state):     # find the cell which has at least choices
+                                                    # otherwise, find_empty_cell: if meet condition cell = 0, it will return immediately
         result_row = None
         result_column = None
         min_valid_values = self.size
         
         for row in range(self.size):
             for column in range(self.size):
-                if state[row][column] == 0:
+                if state[row][column] == 0: # traverse all cell has value 0 to find the cell has the least choices
                     valid_values = len(self.filter_value(state, row, column))
                     if valid_values < min_valid_values:
                         result_row = row
@@ -112,6 +148,13 @@ class Sudoku:
         for i in range(0, len(return_queue)):
             return_queue[i][row][column] = valid_value[i]
             return_queue[i] = (return_queue[i], history + [(row, column, valid_value[i], state)])
+            
+        # global count2
+        # if count2 != 4:
+        #     count2 +=1
+        #     print("row, col: ", row, column)
+        #     print("valid value: ", valid_value)        
+    
         return return_queue
     
     def expand_dfs_heuristic(self, state, history):
@@ -122,9 +165,16 @@ class Sudoku:
         for i in range(0, len(return_stack)):
             return_stack[i][row][column] = valid_value[i]
             return_stack[i] = (return_stack[i], history + [(row, column, valid_value[i], state)])
+            
+        # global count2
+        # if count2 != 6:
+        #     count2 +=1
+        #     print("row, col: ", row, column)
+        #     print("valid values: ", valid_value)
+        
         return return_stack
     
-    
+    @Mem.profile 
     def bfs(self): 
         file = open("temp.txt", "w")
         queue = [(copy.deepcopy(self.board), [])]
@@ -134,10 +184,27 @@ class Sudoku:
             state = queue[0][0]
             history = queue[0][1]
             queue.pop(0)
+            
+            # global count3
+            # if count3 != 4:
+            #     count3 +=1
+            #     print("pop state: ", state)
+            
             if self.check_goal(state): return state, history
             expand_queue = self.expand(state, history)
             if expand_queue == None: continue # Pass
             queue += expand_queue
+            
+            # global count1
+            # if count1 != 4:
+            #     count1 += 1
+            #     print("queue after expand: ")
+            #     for i in range(len(queue)):
+            #         print(queue[i])
+            #         print('\n')
+                
+            # print("queue size: ", len(queue))
+                
         print("No solution!")
     
     def dfs_with_heuristic(self):
@@ -150,12 +217,37 @@ class Sudoku:
             stack_top = stack.pop()
             state = stack_top[0]
             history = stack_top[1]
+            
+            # global count1
+            # if count1 != 6:
+            #     count1 +=1
+            #     print("pop state: ", state)
+            
             if self.check_goal(state): return state, history
             expand_stack = self.expand_dfs_heuristic(state, history)
             if expand_stack == None: continue
             stack = expand_stack + stack
+            
+            # global count3
+            # if count3 != 6:
+            #     count3 +=1
+            #     print("stack after expand: ")
+            #     for i in range(len(stack)):
+            #         print(stack[i])
+            #         print("\n")
+            
+            # global count3
+            # if count3 != 20:
+            #     count3 +=1
+            #     print("stack size: ", len(stack))
+            #     print("stack after expand: ")
+            #     for i in range(len(stack)):
+            #         print(stack[i])
+            #         print("\n")
+            
         print("No solution!")
         
+       
     def heuristic(self):
         return self.dfs_with_heuristic()
 
@@ -169,7 +261,12 @@ def online_init():
     # Take task string from web page
     request = requests.get(f"https://www.puzzle-sudoku.com/?size={level}")
     task = request.text[request.text.find("var task ="):]
+    
+    
+    
     task = task[task.find("'") + 1: task.find(";") - 1]
+    print("task: ", task)
+    print("task: ", len(task))
     return task
 
 def custom_init():
@@ -180,7 +277,11 @@ def custom_init():
             board.append(line.split(" "))
     return board
 
-if __name__ == "__main__":
+
+
+
+# if __name__ == "__main__":
+def main():
     board = Sudoku(online_init())
     print(board)
     import time
@@ -190,15 +291,17 @@ if __name__ == "__main__":
     end = time.time()
     print("BFS time: ", end - start)
     
-    start = time.time()
-    result_heuristic, history_heuristic = board.heuristic()
-    end = time.time()  
-    print("Heuristic time: ", end - start) 
+    # start = time.time()
+    # result_heuristic, history_heuristic = board.heuristic()
+    # end = time.time()  
+    # print("Heuristic time: ", end - start) 
     
-    with open("sudoku_bfs_result.txt", "w") as output_file:
-        output_file.write(Sudoku.result(result_bfs, history_bfs, board.size))
-    with open("sudoku_heuristic_result.txt", "w") as output_file:
-        output_file.write(Sudoku.result(result_heuristic, history_heuristic, board.size))
+    # with open("sudoku_bfs_result.txt", "w") as output_file:
+    #     output_file.write(Sudoku.result(result_bfs, history_bfs, board.size))
+    # # with open("sudoku_heuristic_result.txt", "w") as output_file:
+    # #     output_file.write(Sudoku.result(result_heuristic, history_heuristic, board.size))
+      
+main()
 
 
 """ 

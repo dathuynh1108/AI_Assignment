@@ -4,7 +4,7 @@ import copy
 from sre_parse import GLOBAL_FLAGS
 
 from numpy import append, insert
-
+import resource
 
 
 
@@ -174,7 +174,7 @@ class Sudoku:
         
         return return_stack
     
-    @Mem.profile 
+    # @Mem.profile 
     def bfs(self): 
         file = open("temp.txt", "w")
         queue = [(copy.deepcopy(self.board), [])]
@@ -247,7 +247,7 @@ class Sudoku:
             
         print("No solution!")
         
-       
+    # @Mem.profile
     def heuristic(self):
         return self.dfs_with_heuristic()
 
@@ -265,8 +265,8 @@ def online_init():
     
     
     task = task[task.find("'") + 1: task.find(";") - 1]
-    print("task: ", task)
-    print("task: ", len(task))
+    # print("task: ", task)
+    # print("task: ", len(task))
     return task
 
 def custom_init():
@@ -290,16 +290,21 @@ def main():
     result_bfs, history_bfs = board.bfs()
     end = time.time()
     print("BFS time: ", end - start)
+    with open("sudoku_bfs_result.txt", "w") as output_file:
+        output_file.write(Sudoku.result(result_bfs, history_bfs, board.size))
     
     # start = time.time()
     # result_heuristic, history_heuristic = board.heuristic()
     # end = time.time()  
     # print("Heuristic time: ", end - start) 
+    # with open("sudoku_heuristic_result.txt", "w") as output_file:
+    #     output_file.write(Sudoku.result(result_heuristic, history_heuristic, board.size))
     
-    # with open("sudoku_bfs_result.txt", "w") as output_file:
-    #     output_file.write(Sudoku.result(result_bfs, history_bfs, board.size))
-    # # with open("sudoku_heuristic_result.txt", "w") as output_file:
-    # #     output_file.write(Sudoku.result(result_heuristic, history_heuristic, board.size))
+    mem_heuristic = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    print("Memory: ", mem_heuristic, " bytes")
+    
+    
+    
       
 main()
 

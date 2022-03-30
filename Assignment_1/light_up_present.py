@@ -9,6 +9,33 @@ import os
 from numpy import number
 import resource
 
+
+count1 = 0
+count2 = 0
+count3 = 0
+count4 = 0
+
+
+class Mem:
+    def process_memory():
+        process = psutil.Process(os.getpid())
+        mem_info = process.memory_info()
+        return mem_info.rss
+    
+    # decorator function
+    def profile(func):
+        def wrapper(*args, **kwargs):
+    
+            mem_before = Mem.process_memory()
+            result = func(*args, **kwargs)
+            mem_after = Mem.process_memory()
+            print("{}:consumed memory: {:,}".format(
+                func.__name__,
+                mem_before, mem_after, mem_after - mem_before))
+    
+            return result
+        return wrapper
+
 result = ""
 block = ['0', '1', '2', '3', '4', 'B']
 class Light_Up:
@@ -90,6 +117,7 @@ class Solution:
             bulbs_list.append(self.board[row][col + 1])
         return abs(number_in_black_cell - bulbs_list.count("x"))   # cuz bulbs can be more or less than the number in black cell ---> abs
 
+    # kiểm tra 1 ô đen đc đánh 0,1,2,3 có nhiêu bóng đèn xung quanh nó
     def count_remaning_bulbs(self, row, col, number_in_black_cell): # check the black cell is having how many bulbs around 4 corners
         bulbs_list = []
         if row > 0:
@@ -102,6 +130,8 @@ class Solution:
             bulbs_list.append(self.board[row][col + 1])
         return number_in_black_cell - bulbs_list.count("x")    # check the number of bulbs that can be filled more, if < 0 --> false
     
+    # khi đặt 1 bóng đèn vào ô (i,j) số bóng đèn xung quanh ở các ô đen chung cạnh ô (i,j) sẽ thay đổi
+    # ta cần phải kiểm tra số bóng đèn xung quanh của 4 ô đen chung cạnh ô (i,j)
     def check_not_conflict_other_black_cells(self, row, col):
         if row > 0 and (self.board[row - 1][col] in block) and (self.board[row - 1][col] != 'B'):
             if self.count_remaning_bulbs(row - 1, col, int(self.board[row - 1][col])) < 0:
@@ -148,6 +178,7 @@ class Solution:
         return_board[row][col] = "x"
         return self.light_up_row_and_col(row, col, return_board)
     
+    # xóa từ danh sách black_cell_with_number ô đc đánh 1,2,3 mà đã đủ bóng đèn xung quanh nó
     def delete_satisfied_black_cells(self):
         i = 0
         while i < len(self.black_cell_with_number):     # check all black cell with number 1,2,3
@@ -161,7 +192,12 @@ class Solution:
         return_child_list = []
         black_cell_with_number_copy = deepcopy(self.black_cell_with_number)
         m = deepcopy(self)
-
+        
+        # ta sẽ ưu tiên thăm các ô đen đc đánh số 1,2,3 mà ô đc đánh số i có ÍT HƠN i bóng đèn xung quanh
+        # a chính là list những ô như vậy
+        # Nếu a rỗng, khi này mọi ô đen đc đánh 1,2,3 đều đã đủ các bóng đèn xung quanh nó
+        # Khi này chọn ô trắng đầu tiên chưa đc chiếu sáng, ta visit tất cả các ô mà chiếu sáng ô trắng này
+        # như vậy trường hợp xấu nhất ta tạo 13 child (là những ô chung hàng và cột) 
         if black_cell_with_number_copy == []:
             found = False
             for i in range (0, self.size):
@@ -216,13 +252,20 @@ class Solution:
                         break
                 if found == True:
                     break
-
+        # nếu a khác rỗng, khi này sẽ có 1 ô đen chưa đủ bóng đèn xung quanh nó, khi này ta
+        # sẽ visit 4 ô xung quanh ô đen, vậy trường hợp xấu nhất ta tạo ra 4 child
         else:
             # example: a = [ [1, 4], [2, 1] ...]; 1 and 4 is index of row and column of black cell
             row_and_col = black_cell_with_number_copy[0]  # get the first pair [row, col]
             row = row_and_col[0] # row
             col = row_and_col[1] # col
             
+            # global count3
+            # if count3 != 100:
+            #     count3 +=1
+            #     print("row, col: ", row, col)
+            
+            # print("row, col: ", row, col)
             
             if row - 1 >= 0 and self.board[row - 1][col] == "-":
                 new_board = m.put_bulb_and_light_up(row - 1, col)  # m is root (board, child, black_cell_with_number) ---> return a board (b)
@@ -265,6 +308,7 @@ class Solution:
                 print(" ",end="")
             print()
 
+# @Mem.profile
 def breadth_first_search(root):
     visited = []
     queue = []
@@ -274,6 +318,11 @@ def breadth_first_search(root):
     while queue and (queue[0].check_goal() == False):
         state = queue.pop(0)
         state.child = state.expand()
+        
+        # a.print_board()
+        # print()
+        # print("---------------------------------")
+        # print()
 
         for ele in state.child:
             if ele.board not in visited:
@@ -293,7 +342,9 @@ def heuristic(solution):
                 res = res + solution.check_satisfy_one_black_cell(i, j, int(solution.board[i][j]))
                 
     return res
-
+    
+# @Mem.profile
+#cũng giống breadth first nhưng sort queue sau mỗi lần thêm
 def best_first_search(root):
     visited = []
     queue = []
@@ -306,13 +357,17 @@ def best_first_search(root):
         state.child = state.expand()
         state.child.sort(key=heuristic)
 
+
+        # print()
+        # print("---------------------------------")
+        # print()
         for ele in state.child:
             if ele.board not in visited:
                 queue.append(ele)
                 visited.append(ele.board)
         queue.sort(key=heuristic)
                    
-    queue[0].print_board()
+    # queue[0].print_board()
 
     global result
     for i in range(len(queue[0].board)):
@@ -360,18 +415,44 @@ def main():
     board = Solution(init.board, [], init.black_cell_with_number)
     print(init)
     
+    
+    tracemalloc.start()
+    current_size, peak_size = tracemalloc.get_traced_memory()
+    
     # start_time_BFS = time.time()
     # breadth_first_search(board)
     # end_time_BFS = time.time()
     # print("BFS: ", end_time_BFS - start_time_BFS)
+    
+    
+    
+    # process = psutil.Process(os.getpid())
+    # print(process.memory_info().rss)  # in bytes
     
     start_time_heuristic = time.time()
     best_first_search(board)
     end_time_heuristic = time.time()
     print("Heuristic: ", end_time_heuristic - start_time_heuristic)
     
+    # start_time_heuristic = time.time()
+    # tracemalloc.start()
+    # current_size, peak_size = tracemalloc.get_traced_memory()
+    # best_first_search(board)
+    # current_size, peak_size = tracemalloc.get_traced_memory()
+    # tracemalloc.stop()
+    # end_time_heuristic = time.time()
+    
+    # print("Heuristic: ", end_time_heuristic - start_time_heuristic)
+    
+    # current_size, peak_size = tracemalloc.get_traced_memory()
+    # tracemalloc.stop()
+    # print("mem: ", peak_size , " bytes")
+    
     mem_heuristic = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-    print("Memory: ", mem_heuristic/1024, " MB")
+    print("Memory: ", mem_heuristic, " Bytes")
+    
+    # print("mem: ", peak_size/1024 , " bytes")
+    
     
     global result
     with open("light_up_result.txt", "w") as output_file:

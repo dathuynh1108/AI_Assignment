@@ -1,0 +1,14 @@
+L L L x L L L L L L L L L L 
+L B L 1 0 L L x 2 x L L 1 L 
+L L x L L 1 x L B B B L x L 
+L L B 0 L B L 0 L L 0 L B L 
+L x B L L L L L L L L x B L 
+x 2 B L L x L 1 x L B B L L 
+L L x B x 3 L L L x L L L L 
+L L L L L x L L 0 L B L x L 
+L x 2 B L L B x L L L B 3 x 
+L B x L L L L L L L L B x L 
+L B L B L L 1 L 0 L B B L L 
+L x L B 0 B x L 1 L x L L L 
+L B L x L B L L x B 3 x B L 
+L L L L L L L L L L x L L L 

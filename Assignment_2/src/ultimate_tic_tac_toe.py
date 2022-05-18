@@ -13,9 +13,11 @@ from state import *
 TWO_PLAYER = "2 Player"
 BEGINNER = "Beginner"
 MCTS = "MCTS"
-FOO1 = "Foo 1"
-FOO2 = "Foo 2"
-FOO3 = "Foo 3"
+NORMAL = "Normal"
+HARD = "Hard"
+
+PLAYER = "Player"
+RANDOM = "Random"
 
 # Turn order
 RANDOM_ORDER = "Random"
@@ -35,11 +37,12 @@ rules = pyg_util.RulesScreen()
 # menu items
 textarea = pyg_util.TextArea()  # Displays who's turn it is and game outcome
 
-rulesbutton = pyg_util.Button(  # Show game rules
+
+rule_options = pyg_util.GameOptions(  # Turn order settings
     (GLOBALBOARDSIZE + BOARDERSIZE, BOARDERSIZE + int(1.75 * SQUARESIZE)),
-    'Show Rules',
-    colorfamily=BLUE_FAMILY,
-    textcolor=LIGHT_GRAY
+    PLAYER,
+    RANDOM,
+    PLAYER
 )
 
 newgamebutton = pyg_util.Button(  # Start new game
@@ -59,9 +62,8 @@ alg_options = pyg_util.GameOptions(  # Opponent settings
     BEGINNER,  # default value
     TWO_PLAYER,
     BEGINNER,
-    FOO1,
-    FOO2,
-    FOO3
+    NORMAL,
+    HARD,
 )
 
 order_options = pyg_util.GameOptions(  # Turn order settings
@@ -72,6 +74,7 @@ order_options = pyg_util.GameOptions(  # Turn order settings
     PLAYER_SECOND
 )
 
+
 """End PyGame Initialization"""
 
 
@@ -81,12 +84,15 @@ class GlobalVariables:
         self.player: int = 1
         self.bot_alg: str = alg_options.get_option()
         order: str = order_options.get_option()
+        self.random_agent = rule_options.get_option()
         
         self.bot: int
 
         # Decide whether the bot goes first or second
+        
         if self.bot_alg == TWO_PLAYER:
             self.bot = 0
+            
         elif order == RANDOM_ORDER:
             self.bot = rand.choice([1, -1])
             self.human = - self.bot
@@ -115,9 +121,10 @@ def draw_menu() -> None:
     update_text()
 
     # Display Buttons
-    rulesbutton.draw(screen, False)
+    rule_options.draw(screen)
     newgamebutton.draw(screen, False)
     quitbutton.draw(screen, False)
+
 
     alg_options.draw(screen)
     order_options.draw(screen)
@@ -257,8 +264,8 @@ def make_move(local_board: LocalBoard, row: int, col: int) -> None:
 
 def main() -> None:
     """The main game loop. Initializes the global variables, then plays one game of ultimate tic tac toe"""
-
     while not GLOBALS.game_over:
+        print(GLOBALS.player)
         if GLOBALS.player == GLOBALS.bot:  # bot turn
             if GLOBALS.bot_alg == BEGINNER:
                 lb, row, col = minimax.bot_turn(GLOBALS.global_board, GLOBALS.bot)  # get the bot's move
@@ -267,7 +274,7 @@ def main() -> None:
 
             make_move(lb, row, col)  # record the move and update the GUI
 
-        else:  # human turn (will always be the case in 2-player mode
+        else:  # human turn (will always be the case in 2-player mode            
             for event in pygame.event.get():
                 mouse = pygame.mouse.get_pos()
 
@@ -279,14 +286,9 @@ def main() -> None:
                         return
 
                 # Show Rules Button
-                elif rulesbutton.is_button_event(event, mouse):
-                    rulesbutton.draw(screen)
-                    if event.type == pygame.MOUSEBUTTONUP:
-                        rules.show_rules(screen)
-                        draw_board()
-                        rulesbutton.mode = 'normal'
-                        draw_menu()
-                        pygame.display.flip()
+                elif rule_options.is_event(event, mouse, screen):
+                    # rule_options.draw(screen)
+                    pass
 
                 # Quit Button
                 elif quitbutton.is_button_event(event, mouse):  # Custom quit button
@@ -304,13 +306,15 @@ def main() -> None:
 
                 # Human Turn
                 elif event.type == pygame.MOUSEBUTTONUP:
+                    if GLOBALS.random_agent == RANDOM:
+                        params = minimax.random_turn(GLOBALS.global_board, GLOBALS.player)
                     # Get lb, and row and col coordinates from get_inputs(). Check if lb is None
-                    params = get_inputs(mouse)
+                    else : params = get_inputs(mouse)
                     if params is not None:
                         lb, row, col, lb_index = params
                         # Check if local board is in focus and if selected space has not yet been played
                         if lb.focus and lb.board[row][col] == 0:
-                            GLOBALS.global_board.previous_move = UltimateTTT_Move(lb_index, row, col, GLOBALS.human)
+                            GLOBALS.global_board.previous_move = UltimateTTT_Move(lb_index, row, col, GLOBALS.player)
                             make_move(lb, row, col)
 
                 # If the mouse has been moved and is within the global board, draw a trail that displays an X or O
@@ -345,14 +349,8 @@ def keep_alive() -> None:
                     return
 
             # Show Rules Button
-            elif rulesbutton.is_button_event(event, mouse):
-                rulesbutton.draw(screen)
-                if event.type == pygame.MOUSEBUTTONUP:
-                    rules.show_rules(screen)
-                    draw_board()
-                    rulesbutton.mode = 'normal'
-                    draw_menu()
-                    pygame.display.flip()
+            elif rule_options.is_event(event, mouse, screen):
+                print("########3")
 
             # Quit Button
             elif quitbutton.is_button_event(event, mouse):

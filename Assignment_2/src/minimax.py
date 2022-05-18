@@ -282,7 +282,7 @@ def act_move_test(cur_state:State, move:UltimateTTT_Move):
 
 def minimax(cur_state, depth, player, previous_move, alpha, beta)->int:
     """Return a score that state can lead to"""
-    if depth == 2: return evaluate_global(cur_state)
+    if depth == 3: return evaluate_global(cur_state)
     valid_moves = get_valid_moves_test(cur_state, player, previous_move)
     # print(valid_moves)
     if player == 1:
@@ -604,7 +604,6 @@ def bot_turn(global_board: GlobalBoard, bot: int):
 
 
     ################################
-    print("global_board.board: ", global_board.board)
     state = State()
     state.global_cells = np.reshape(np.array(global_board.board), 9)
     # print("global_cells: ", state.global_cells)
@@ -620,12 +619,39 @@ def bot_turn(global_board: GlobalBoard, bot: int):
         state.free_move = True
 
     move = select_move(state)
-    print ("move", move)
     local_board_index = move.index_local_board
     row = move.x
     col = move.y
     global_board.previous_move = move
-    local_board = global_board.local_board_list[local_board_index]
-    print(local_board, row, col)
-    print()
-    return local_board, row, col
+    return global_board.local_board_list[local_board_index], row, col
+
+def random_turn(global_board: GlobalBoard, human: int):    
+    local_board: Optional[LocalBoard] = None
+
+
+    ################################
+    state = State()
+    state.global_cells = np.reshape(np.array(global_board.board), 9)
+    # print("global_cells: ", state.global_cells)
+    for i in range(9):
+        state.blocks[i] = np.array(global_board.local_board_list[i].board)
+        #state.blocks = np.array([x.board for x in global_board.local_board_list[i]])
+    state.previous_move = global_board.previous_move
+    state.player_to_move = human
+
+    ################################
+    # If the next board is undetermined
+    if all(lb.focus == lb.playable for lb in global_board.local_board_list): 
+        state.free_move = True
+    move = select_move_random(state)
+    local_board_index = move.index_local_board
+    row = move.x
+    col = move.y
+    global_board.previous_move = move
+    return global_board.local_board_list[local_board_index], row, col, local_board_index
+
+def select_move_random(cur_state):
+    valid_moves = cur_state.get_valid_moves
+    if len(valid_moves) != 0:
+        return np.random.choice(valid_moves)
+    return None

@@ -1,0 +1,10 @@
+L L L L L x 1 L x L 
+x B 1 B L B L x 2 L 
+L L x L L 0 L L 0 L 
+0 L L x L L L L 0 L 
+L B 1 L L x L L L L 
+L L x L L L L 0 1 x 
+L 0 L L x L L L L 1 
+x B L L 1 L x L L L 
+L 1 L L 0 L 1 B 0 L 
+L x L B L L L L L x 

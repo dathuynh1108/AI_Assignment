@@ -4,14 +4,10 @@ import copy
 from sre_parse import GLOBAL_FLAGS
 
 from numpy import append, insert
-import resource
+# import resource
 
 
 
-
-count1 = 0
-count2 = 0
-count3 = 0
 import os           
 import psutil
 
@@ -46,9 +42,7 @@ class Sudoku:
                     self.board.append(int(c))
                 else:
                     self.board += [0 for i in range((ord(c) - ord("a") + 1))]  
-            
-            # print("len:  ", len(self.board))
-            
+
             self.size = int(sqrt(len(self.board)))
             self.board = [self.board[i : i + self.size] for i in range(0, len(self.board), self.size)]
         else:
@@ -148,12 +142,7 @@ class Sudoku:
         for i in range(0, len(return_queue)):
             return_queue[i][row][column] = valid_value[i]
             return_queue[i] = (return_queue[i], history + [(row, column, valid_value[i], state)])
-            
-        # global count2
-        # if count2 != 4:
-        #     count2 +=1
-        #     print("row, col: ", row, column)
-        #     print("valid value: ", valid_value)        
+
     
         return return_queue
     
@@ -165,18 +154,12 @@ class Sudoku:
         for i in range(0, len(return_stack)):
             return_stack[i][row][column] = valid_value[i]
             return_stack[i] = (return_stack[i], history + [(row, column, valid_value[i], state)])
-            
-        # global count2
-        # if count2 != 6:
-        #     count2 +=1
-        #     print("row, col: ", row, column)
-        #     print("valid values: ", valid_value)
-        
+
         return return_stack
     
     # @Mem.profile 
     def bfs(self): 
-        file = open("temp.txt", "w")
+        # file = open("temp.txt", "w")
         queue = [(copy.deepcopy(self.board), [])]
         state = None
         history = None
@@ -184,26 +167,10 @@ class Sudoku:
             state = queue[0][0]
             history = queue[0][1]
             queue.pop(0)
-            
-            # global count3
-            # if count3 != 4:
-            #     count3 +=1
-            #     print("pop state: ", state)
-            
             if self.check_goal(state): return state, history
             expand_queue = self.expand(state, history)
             if expand_queue == None: continue # Pass
             queue += expand_queue
-            
-            # global count1
-            # if count1 != 4:
-            #     count1 += 1
-            #     print("queue after expand: ")
-            #     for i in range(len(queue)):
-            #         print(queue[i])
-            #         print('\n')
-                
-            # print("queue size: ", len(queue))
                 
         print("No solution!")
     
@@ -218,32 +185,10 @@ class Sudoku:
             state = stack_top[0]
             history = stack_top[1]
             
-            # global count1
-            # if count1 != 6:
-            #     count1 +=1
-            #     print("pop state: ", state)
-            
             if self.check_goal(state): return state, history
             expand_stack = self.expand_dfs_heuristic(state, history)
             if expand_stack == None: continue
             stack = expand_stack + stack
-            
-            # global count3
-            # if count3 != 6:
-            #     count3 +=1
-            #     print("stack after expand: ")
-            #     for i in range(len(stack)):
-            #         print(stack[i])
-            #         print("\n")
-            
-            # global count3
-            # if count3 != 20:
-            #     count3 +=1
-            #     print("stack size: ", len(stack))
-            #     print("stack after expand: ")
-            #     for i in range(len(stack)):
-            #         print(stack[i])
-            #         print("\n")
             
         print("No solution!")
         
@@ -265,8 +210,6 @@ def online_init():
     
     
     task = task[task.find("'") + 1: task.find(";") - 1]
-    # print("task: ", task)
-    # print("task: ", len(task))
     return task
 
 def custom_init():
@@ -293,15 +236,15 @@ def main():
     with open("sudoku_bfs_result.txt", "w") as output_file:
         output_file.write(Sudoku.result(result_bfs, history_bfs, board.size))
     
-    # start = time.time()
-    # result_heuristic, history_heuristic = board.heuristic()
-    # end = time.time()  
-    # print("Heuristic time: ", end - start) 
-    # with open("sudoku_heuristic_result.txt", "w") as output_file:
-    #     output_file.write(Sudoku.result(result_heuristic, history_heuristic, board.size))
+    start = time.time()
+    result_heuristic, history_heuristic = board.heuristic()
+    end = time.time()  
+    print("Heuristic time: ", end - start) 
+    with open("sudoku_heuristic_result.txt", "w") as output_file:
+        output_file.write(Sudoku.result(result_heuristic, history_heuristic, board.size))
     
-    mem_heuristic = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-    print("Memory: ", mem_heuristic, " bytes")
+    # mem_heuristic = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    # print("Memory: ", mem_heuristic, " bytes")
     
     
     

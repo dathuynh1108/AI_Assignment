@@ -28,7 +28,7 @@ heuristic = mpatches.Patch(color='red', label='Heuristic search')
 bfs = mpatches.Patch(color='blue', label='Breadth-first search')
 # ax.set_title("So sánh thời gian giữa 2 giải thuật")
 ax.set_xlabel('Level')
-ax.set_ylabel('Bộ nhớ (Byte)')
+ax.set_ylabel('Bộ nhớ (KB)')
 ax.legend(handles=[heuristic, bfs])
 
 

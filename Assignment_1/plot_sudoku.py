@@ -26,7 +26,7 @@ ax.plot(testcases, mem_heutistic, 'r')
 heuristic = mpatches.Patch(color='red', label='Heuristic search')
 bfs = mpatches.Patch(color='blue', label='Breadth-first search')
 ax.set_xlabel('Level')
-ax.set_ylabel('Bộ nhớ (Byte)')
+ax.set_ylabel('Bộ nhớ (KB)')
 ax.legend(handles=[heuristic, bfs])
 
 

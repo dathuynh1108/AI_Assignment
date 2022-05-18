@@ -371,7 +371,7 @@ def main():
     print("Heuristic: ", end_time_heuristic - start_time_heuristic)
     
     mem_heuristic = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-    print("Memory: ", mem_heuristic/1024, " MB")
+    print("Memory:", mem_heuristic, "KB")
     
     global result
     with open("light_up_result.txt", "w") as output_file:

@@ -12,7 +12,6 @@ from state import *
 # Opponent setting
 TWO_PLAYER = "2 Player"
 BEGINNER = "Beginner"
-MCTS = "MCTS"
 NORMAL = "Normal"
 HARD = "Hard"
 
@@ -265,13 +264,8 @@ def make_move(local_board: LocalBoard, row: int, col: int) -> None:
 def main() -> None:
     """The main game loop. Initializes the global variables, then plays one game of ultimate tic tac toe"""
     while not GLOBALS.game_over:
-        print(GLOBALS.player)
-        if GLOBALS.player == GLOBALS.bot:  # bot turn
-            if GLOBALS.bot_alg == BEGINNER:
-                lb, row, col = minimax.bot_turn(GLOBALS.global_board, GLOBALS.bot)  # get the bot's move
-            else:
-                raise Exception("Undefined bot algorithm")
-
+        if GLOBALS.player == GLOBALS.bot:  # bot turn            
+            lb, row, col = minimax.bot_turn(GLOBALS.global_board, GLOBALS.bot, GLOBALS.bot_alg)  # get the bot's move
             make_move(lb, row, col)  # record the move and update the GUI
 
         else:  # human turn (will always be the case in 2-player mode            
@@ -350,7 +344,7 @@ def keep_alive() -> None:
 
             # Show Rules Button
             elif rule_options.is_event(event, mouse, screen):
-                print("########3")
+                pass
 
             # Quit Button
             elif quitbutton.is_button_event(event, mouse):

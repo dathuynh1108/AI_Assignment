@@ -1,14 +1,3 @@
-"""
-This is a modified version of the minimax algorithm for Tic Tac Toe from the following source:
-Link: https://github.com/Cledersonbc/tic-tac-toe-minimax
-
-An implementation of Minimax AI Algorithm in Tic Tac Toe, using Python.
-This software is available under GPL license.
-Author: Clederson Cruz
-Year: 2017
-License: GNU GENERAL PUBLIC LICENSE (GPL)
-"""
-
 
 from typing import Tuple, List, Optional
 from math import inf
